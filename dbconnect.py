@@ -12,7 +12,7 @@ def get_db_connection():
         traceback.print_exc()
         return None
 
-# connect to the cursor
+# now we will connect to the cursor
 def get_db_cursor(conn):
     try:
         return conn.cursor()

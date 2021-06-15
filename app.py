@@ -25,7 +25,7 @@ def get_candy():
         print("something went wrong with the database")
     dbconnect.close_db_cursor(cursor)
     dbconnect.close_db_connection(conn)
-    # send back an error message or a proper response if everything above goes well
+
     if(candy == None):
         return Response("Failed to get candy from DB", mimetype="text/plain", status=500)
    
