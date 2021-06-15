@@ -8,9 +8,11 @@ from flask_cors import CORS
 
 # set app to conect with Flask
 app = Flask(__name__)
+# fix the CORS error
 CORS(app)
 # add the GET endpoint of candy
 @app.get("/candy")
+
 
 def get_candy():
     conn = dbconnect.get_db_connection()
@@ -26,6 +28,7 @@ def get_candy():
     dbconnect.close_db_cursor(cursor)
     dbconnect.close_db_connection(conn)
 
+    # if the candy variable is not changed send back an error
     if(candy == None):
         return Response("Failed to get candy from DB", mimetype="text/plain", status=500)
    
@@ -42,6 +45,7 @@ def post_candy():
     cursor = None
     new_id = -1
     try:
+        # requst each of the columns (except ID)
         candy_name = request.json['name']
         candy_desc = request.json['description']
         candy_price = request.json['price']
@@ -50,12 +54,15 @@ def post_candy():
         traceback.print_exc()
         print("There was a problem with the request")
         return Response("Data error", mimetype="text/plain", status=400)
+
+        # if there is a problem with the requests send back an error
     if(candy_name == None or candy_desc == None or candy_price == None or candy_url == None):
         return Response("Data error", mimetype="text/plain", status=400)
    
     conn = dbconnect.get_db_connection()
     cursor = dbconnect.get_db_cursor(conn)
     try:
+        # execute a sql statement that inserts a new row, commit and set the new_id value to the last row's id
         cursor.execute("INSERT INTO candy (name, description, price, image_url) VALUES (?, ?, ?, ?)", [candy_name, candy_desc, candy_price, candy_url])
         conn.commit()
         new_id = cursor.lastrowid
@@ -65,9 +72,11 @@ def post_candy():
     # new_candy_json = json.dumps(new_candy, default=str)
     dbconnect.close_db_cursor(cursor)
     dbconnect.close_db_connection(conn)
+    # if the new_id doesn't update, send back an error message
     if(new_id == -1):
         return Response("Failed to post candy", mimetype="text/plain", status=500)
     else:
+        # success message
         return Response(f"Successfully posted {candy_name}!", mimetype="text/plain", status=200)
 
 
@@ -77,6 +86,7 @@ def patch_candy():
     conn = None
     cursor = None
     candy_id = None
+    # set the base values for the update
     new_price = 0
     new_name = ""
     new_desc = ""
@@ -84,10 +94,7 @@ def patch_candy():
     conn = dbconnect.get_db_connection()
     cursor = dbconnect.get_db_cursor(conn)
     # your postman should look like something like this
-    # {
-    #     "idcandy": 14,
-    #     "updatecandy": "Snow Owl"
-    # }
+  
     # request this JSON:
     try:
         candy_id = int(request.json['id'])
@@ -112,6 +119,7 @@ def patch_candy():
         print("There was a problem selecting the original candy name")
     try:
         # update the db with the updated candy and the candy id then commit
+        # if a field is not left blank it will send an sql statement
         if(new_price != 0):
             cursor.execute(f"UPDATE candy SET price=? WHERE id=?", [new_price, candy_id])
             conn.commit()
